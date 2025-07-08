@@ -1,57 +1,71 @@
-import java.io.File;
-import java.util.Scanner;
-
-import actions.ConsultarNotas;
-import actions.EliminarEstudiante;
-import actions.ListarEstudiantes;
-import actions.RegistroEstudiante;
-import enums.MenuOption;
+import java.util.*;
+import models.Student;
+import services.FileManager;
 
 public class SistemaRegistroNotas {
-    private static final Scanner sc = new Scanner(System.in);
-    private static final String BASE_FOLDER = "notas";
+    private static final Scanner scanner = new Scanner(System.in);
 
     public static void main(String[] args) {
-        File notasFolder = new File(BASE_FOLDER);
-        if (!notasFolder.exists()) {
-            notasFolder.mkdir();
-        }
+        FileManager.baseFolder();
 
         while (true) {
-            MenuOption.printMenu();
-            System.out.print("Seleccione una opcion: ");
-            int option;
+            System.out.println("\nSistema de Registro de Notas");
+            System.out.println("1. Registrar estudiante");
+            System.out.println("2. Consultar notas de un estudiante");
+            System.out.println("3. Listar estudiantes");
+            System.out.println("4. Desmatricular alumno");
+            System.out.println("5. Salir");
+            System.out.print("Seleccione una opción: ");
+
+            int opcion;
             try {
-                option = Integer.parseInt(sc.nextLine());
-            } catch (NumberFormatException e) {                
-                System.out.println("\n");
-                System.out.println("Entrada invalida debe ser un entero. Intente nuevamente.");
+                opcion = Integer.parseInt(scanner.nextLine());
+            } catch (NumberFormatException e) {
+                System.out.println("Opción inválida.");
                 continue;
             }
 
-            MenuOption selected = MenuOption.fromOption(option);
-            if (selected == null) {
-                System.out.println("\n");
-                System.out.println("Opcion invalida. Intente nuevamente.");
-                continue;
-            }
-            System.out.println("\n");
-            switch (selected) {
-                case REGISTER:
-                    RegistroEstudiante.ejecutar(sc, BASE_FOLDER);
-                    break;
-                case SHOW_NOTES:
-                    ConsultarNotas.ejecutar(sc, BASE_FOLDER);
-                    break;
-                case LIST:
-                    ListarEstudiantes.ejecutar(BASE_FOLDER);
-                    break;
-                case DELETE:
-                    EliminarEstudiante.ejecutar(sc, BASE_FOLDER);
-                    break;
-                case EXIT:
-                    System.out.println("Saliendo del sistema. Hasta luego!");
+            switch (opcion) {
+                case 1 -> {
+                    System.out.print("Nombre del estudiante: ");
+                    Student student = new Student(scanner.nextLine());
+                    ArrayList<String> notas = new ArrayList<>();
+
+                    while (true) {
+                        System.out.print("Ingrese tarea y nota (ej: Tarea_1: 8), o 'fin' para terminar: ");
+                        String input = scanner.nextLine();
+                        if (input.equalsIgnoreCase("fin")) break;
+                        notas.add(input);
+                    }
+
+                    try {
+                        FileManager.addNotes(student, notas);
+                        System.out.println("Notas guardadas correctamente.");
+                    } catch (Exception e) {
+                        System.out.println("Error al guardar notas.");
+                    }
+                }
+
+                case 2 -> {
+                    System.out.print("Nombre del estudiante: ");
+                    Student s = new Student(scanner.nextLine());
+                    FileManager.showNotes(s);
+                }
+
+                case 3 -> FileManager.listStudents();
+
+                case 4 -> {
+                    System.out.print("Nombre del estudiante a eliminar: ");
+                    Student s = new Student(scanner.nextLine());
+                    System.out.println(FileManager.deleteStudent(s));
+                }
+
+                case 5 -> {
+                    System.out.println("Saliendo del sistema.");
                     return;
+                }
+
+                default -> System.out.println("Opción no válida.");
             }
         }
     }
